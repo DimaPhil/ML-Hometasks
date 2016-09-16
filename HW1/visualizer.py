@@ -1,11 +1,13 @@
 from matplotlib import pyplot as plt
-from matplotlib import colors as plc
 
-def draw(xs, ys, values):
-    colors = plc.ListedColormap(['#FF0000', '#FFFFFF'])
-    data = [[[xs[i], ys[i]], 0 if values[i] == 1 else 1] for i in range(len(xs))]
-    plt.scatter([point[0][0] for point in data],
-                [point[0][1] for point in data],
-                c=[point[1] for point in data],
-                cmap=colors)
+
+def draw(data, size=50):
+    cs = ['#FFFFFF', '#FF0000', '#808080', '#800000']
+    plt.scatter([point[0] for point in data],
+                [point[1] for point in data],
+                c=[cs[point[2]] for point in data],
+                s=size)
+
+
+def finalize():
     plt.show()
