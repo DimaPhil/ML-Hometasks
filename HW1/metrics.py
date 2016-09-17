@@ -8,4 +8,5 @@ class Metrics:
 
     @staticmethod
     def get_all_metrics(self):
-        return [self.minkowski_metric(1), self.minkowski_metric(2)]
+        return [(self.minkowski_metric(1), 'Manhattan metric'),
+                (self.minkowski_metric(2), 'Euclid metric')]
