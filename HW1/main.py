@@ -4,8 +4,23 @@ from metrics import Metrics as ms
 from transformations import Transformations as ts
 
 
+def load(filename):
+    with open(filename, 'r') as input:
+        xs = []
+        ys = []
+        values = []
+        for line in input.readlines():
+            x, y, value = line.strip().split(',')
+            xs.append(float(x))
+            ys.append(float(y))
+            values.append(int(value))
+        assert (len(xs) == len(ys) and len(ys) == len(values))
+        print(str(len(xs)) + ' objects loaded from ' + filename)
+        return xs, ys, values
+
+
 def main():
-    xs, ys, values = knn.load('chips.txt')
+    xs, ys, values = load('chips.txt')
     for metric, ms_comment in ms.get_all_metrics(ms):
         for transform, ts_comment in ts.get_all_transformations(ts):
             for k in range(10, 5, -1):

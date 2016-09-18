@@ -4,21 +4,6 @@ from functools import cmp_to_key
 random.seed('ML-HW1')
 
 
-def load(filename):
-    with open(filename, 'r') as input:
-        xs = []
-        ys = []
-        values = []
-        for line in input.readlines():
-            x, y, value = line.strip().split(',')
-            xs.append(float(x))
-            ys.append(float(y))
-            values.append(int(value))
-        assert (len(xs) == len(ys) and len(ys) == len(values))
-        print(str(len(xs)) + ' objects loaded from ' + filename)
-        return xs, ys, values
-
-
 def fold_cross_validation(data, values, metric, t=10, k=10, bestk=1):
     n = len(data[0])
     best_accuracy = 0.
@@ -64,6 +49,6 @@ def fold_cross_validation(data, values, metric, t=10, k=10, bestk=1):
                 best_accuracy = accuracy
                 best_train = train
                 best_test = test
-    print('Best accuracy: ' + str(best_accuracy * 100.) + '%')
+    print('Best accuracy: ' + str(best_accuracy * 100) + '%')
     print('Average error: ' + str(error / t / k * 100) + '%')
     return best_train, best_test
