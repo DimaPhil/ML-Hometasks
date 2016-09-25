@@ -10,6 +10,7 @@ def fold_cross_validation(data, values, metric, t=10, k=10, bestk=1):
     best_train = []
     best_test = []
     error = 0
+    sumb = 0
     for _ in range(t):
         ids = [i for i in range(n)]
         random.shuffle(ids)
@@ -49,6 +50,8 @@ def fold_cross_validation(data, values, metric, t=10, k=10, bestk=1):
                 best_accuracy = accuracy
                 best_train = train
                 best_test = test
-    print('Best accuracy: ' + str(best_accuracy * 100) + '%')
-    print('Average error: ' + str(error / t / k * 100) + '%')
-    return best_train, best_test
+        sumb += len(blocks)
+    av_error = error / sumb * 100
+    #print('Best accuracy: ' + str(best_accuracy * 100) + '%')
+    #print('Average error: ' + str(av_error) + '%')
+    return best_train, best_test, av_error

@@ -1,3 +1,5 @@
+import math
+
 class Transformations:
     def __init__(self):
         pass
@@ -11,7 +13,11 @@ class Transformations:
         return lambda xs, ys: list(zip(*tuple([x, y, x * y, x ** 2, y ** 2] for x, y in zip(xs, ys))))
 
     @staticmethod
-    def compressing_transform(xs, ys):
+    def square_transform():
+        return lambda xs, ys: list(zip(*tuple([x ** 2, y ** 2] for x, y in zip(xs, ys))))
+
+    @staticmethod
+    def normalization(xs, ys):
         minx = min(xs)
         maxx = max(xs)
         miny = min(ys)
@@ -19,12 +25,12 @@ class Transformations:
         nxs = []
         nys = []
         for x, y in zip(xs, ys):
-            nxs.append((x - minx) / (maxx - minx))
-            nys.append((y - miny) / (maxy - miny))
+            nxs.append((x - minx) / (maxx - minx) * 2 - 1)
+            nys.append((y - miny) / (maxy - miny) * 2 - 1)
         return [nxs, nys]
 
     @staticmethod
     def get_all_transformations(self):
         return [(self.automorphism(), 'Automorphism, no changes'),
-                (lambda xs, ys: self.compressing_transform(xs, ys), 'Compressing transform for [0, 1]x[0, 1]'),
+                (self.square_transform(), '[x, y] -> [x^2, y^2]'),
                 (self.increasing_dimension_transform(), '[x, y] -> [x, y, x * y, x^2, y^2]')]
