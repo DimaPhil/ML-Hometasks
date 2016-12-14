@@ -32,8 +32,30 @@ struct SVD {
   const int STEP_F = 5;
 
   const double MIN_GAMMA = 0.005;
-
   std::vector<Train> trains;
+
+  bool getLine(char *s) {
+    char c;
+    int n = 0;
+    bool first = true;
+    while (true) {
+      c = getchar();
+      if (c == EOF) {
+        if (first) {
+          return false;
+        } else {
+          break;
+        }
+      }
+      if (c == '\n') {
+        break;
+      }
+      s[n++] = c;
+      first = false;
+    }
+    s[n] = '\0';
+    return true;
+  }
 
   SVD(const char* filename) : filename(filename), isValidationEnabled(false) {
       freopen(filename, "r", stdin);
@@ -42,6 +64,7 @@ struct SVD {
       freopen(filename, "r", stdin);
       getLine(s);
       int counter = 0;
+      int sumRate = 0;
       while (getLine(s)) {
         std::vector<std::string> parts = split(s, ',');
         if (++counter % 1000000 == 0) {
@@ -51,9 +74,11 @@ struct SVD {
         long long userId = std::stoll(strip(parts[0]));
         long long itemId = std::stoll(strip(parts[1]));
         int rate = std::stoi(strip(parts[2]));
+        sumRate += rate;
 
         trains.emplace_back(userId, itemId, rate);
       }
+      std::cerr << "Average rating: " << (double)sumRate / static_cast<int>(trains.size()) << '\n';
   }
 
   void setValidation(const char* validation) {
@@ -113,29 +138,6 @@ struct SVD {
     return error;
   }
 
-  bool getLine(char *s) {
-    char c;
-    int n = 0;
-    bool first = true;
-    while (true) {
-      c = getchar();
-      if (c == EOF) {
-        if (first) {
-          return false;
-        } else {
-          break;
-        }
-      }
-      if (c == '\n') {
-        break;
-      }
-      s[n++] = c;
-      first = false;
-    }
-    s[n] = '\0';
-    return true;
-  }
-
   SVDParameters solve(const SVDParameters &parameters) {
     fprintf(stderr, "Using parameters: lambda=%.6f, f=%d, gamma=%.6f, mu = %.6f\n", parameters.lambda, parameters.f,
                                                                                     parameters.gamma, parameters.mu);
@@ -186,7 +188,7 @@ struct SVD {
       i++;
       fclose(stdin);
 
-      fprintf(stderr, "Finished iteration %d/%d iterations, error = %.10f\n", i, MAX_ITERATIONS, error);
+      fprintf(stderr, "Finished %d/%d iterations, error = %.10f\n", i, MAX_ITERATIONS, error);
     }
     newParameters.error = error;
     return newParameters;
