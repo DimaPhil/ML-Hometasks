@@ -30,7 +30,6 @@ int main(int argc, char **argv) {
   }
   if (found) {
     double rmse = 0.0;
-    int size = 0;
     freopen(submission, "r", stdin);
     fprintf(stderr, "Calculating RMSE of output...\n");
     scanf("%s", s);
@@ -39,10 +38,9 @@ int main(int argc, char **argv) {
       long long userId = std::stoll(strip(parts[0]));
       long long itemId = std::stoll(strip(parts[1]));
       int rating = std::stoi(strip(parts[2]));
-      size++;
       Film film = Film(userId, itemId, rating);
-      double e = svd.predictRating(film, bestParameters) - film.rating;
-      rmse += e * e;
+      double error = svd.predictRating(film, bestParameters) - film.rating;
+      rmse += error * error;
     }
     fclose(stdin);
     fprintf(stderr, "RMSE: %.5f\n", sqrt(rmse / size));
