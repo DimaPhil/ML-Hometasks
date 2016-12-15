@@ -14,16 +14,16 @@ struct SVDParameters {
   double gamma;
   std::map<long long, std::vector<double>> pu;
   std::map<long long, std::vector<double>> qi;
-  int f;
+  int number_of_films;
   std::map<long long, std::map<long long, int>> ratings;
   double error;
 
   SVDParameters() {
   }
 
-  SVDParameters(double lambda, int f, double gamma, double mu) {
+  SVDParameters(double lambda, int number_of_films, double gamma, double mu) {
     this->lambda = lambda;
-    this->f = f;
+    this->number_of_films = number_of_films;
     this->gamma = gamma;
     this->mu = mu;
   }

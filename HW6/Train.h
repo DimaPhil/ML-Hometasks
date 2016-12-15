@@ -4,9 +4,9 @@
 struct Train {
   long long userId;
   long long itemId;
-  int rate;
+  int rating;
 
-  Train(long long userId, long long itemId, int rate) : userId(userId), itemId(itemId), rate(rate) {
+  Train(long long userId, long long itemId, int rating) : userId(userId), itemId(itemId), rating(rating) {
   }
 };
 

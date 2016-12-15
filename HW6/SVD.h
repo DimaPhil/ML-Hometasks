@@ -15,23 +15,23 @@
 
 struct SVD {
   const char* filename;
-  const char* validation;
-  bool isValidationEnabled;
   const int MAX_LENGTH = 50;
 
-  const double MU = 3.6033;
-  const int MAX_ITERATIONS = 20;
-  const int EPS = 1e-4;
+  const double MU = 3.6033; //average rating
+  const int MAX_ITERATIONS = 10;
+  const int EPS = 1e-6;
 
-  const double MIN_LAMBDA = 0.002;
-  const double MAX_LAMBDA = 0.008;
-  const double STEP_LAMBDA = 0.001;
+  const double MIN_LAMBDA = 0.003;
+  const double MAX_LAMBDA = 0.007;
+  const double DELTA_LAMBDA = 0.001;
+  const double OPTIMAL_LAMBDA = 0.005;
 
-  const int MIN_F = 10;
-  const int MAX_F = 15;
-  const int STEP_F = 5;
+  const int MIN_NUMBER_OF_FILMS = 10;
+  const int MAX_NUMBER_OF_FILMS = 15;
+  const int DELTA_NUMBER_OF_FILMS = 5;
 
-  const double MIN_GAMMA = 0.005;
+  const double OPTIMAL_GAMMA = 0.005;
+  const double DELTA_GAMMA = 0.9;
   std::vector<Train> trains;
 
   bool getLine(char *s) {
@@ -57,7 +57,7 @@ struct SVD {
     return true;
   }
 
-  SVD(const char* filename) : filename(filename), isValidationEnabled(false) {
+  SVD(const char* filename) : filename(filename) {
       freopen(filename, "r", stdin);
       char s[MAX_LENGTH];
       getLine(s);
@@ -73,20 +73,15 @@ struct SVD {
 
         long long userId = std::stoll(strip(parts[0]));
         long long itemId = std::stoll(strip(parts[1]));
-        int rate = std::stoi(strip(parts[2]));
-        sumRate += rate;
+        int rating = std::stoi(strip(parts[2]));
+        sumRate += rating;
 
-        trains.emplace_back(userId, itemId, rate);
+        trains.emplace_back(userId, itemId, rating);
       }
       std::cerr << "Average rating: " << (double)sumRate / static_cast<int>(trains.size()) << '\n';
   }
 
-  void setValidation(const char* validation) {
-    this->validation = validation;
-    this->isValidationEnabled = false;
-  }
-
-  std::vector<double> generateRandomArray(int n) {
+  std::vector<double> generateRandomValues(int n) {
     std::vector<double> as(n);
     double min = 0.0;
     double max = 1.0 / n;
@@ -97,125 +92,94 @@ struct SVD {
     return std::move(as);
   }
 
-  double scal(const std::vector<double> &qi, const std::vector<double> &pu) {
+  double scal(const std::vector<double> &pu, const std::vector<double> &qi) {
     double answer = 0;
-    assert(qi.size() == pu.size());
-    for (size_t i = 0; i < qi.size(); i++) {
-      answer += qi[i] * pu[i];
+    assert(pu.size() == qi.size());
+    for (size_t i = 0; i < pu.size(); i++) {
+      answer += pu[i] * qi[i];
     }
     return answer;
   }
 
-  double normalizedSquare(const std::vector<double> as) {
-    double answer = 0;
-    for (size_t i = 0; i < as.size(); i++) {
-      answer += as[i] * as[i];
-    }
-    return answer;
+  double squareOfNorm(const std::vector<double> &as) {
+    return scal(as, as);
   }
 
-  int getRate(const Film &film, SVDParameters &parameters) {
-    double result = parameters.mu + parameters.bu[film.userId] + 
-                    parameters.bi[film.itemId] + scal(parameters.pu[film.userId], parameters.qi[film.itemId]);
-    int rate = (int)result;
-    rate = std::min(5, std::max(1, rate));
-    return rate;
+  int predictRating(const Film &film, SVDParameters &parameters) {
+    double result = parameters.mu + 
+                    parameters.bu[film.userId] + 
+                    parameters.bi[film.itemId] +
+                    scal(parameters.pu[film.userId], parameters.qi[film.itemId]);
+    int rating = static_cast<int>(result);
+    rating = std::min(5, std::max(1, rating));
+    return rating;
   }
 
-  double countError(SVDParameters &parameters) {
+  template<class T>
+  T sqr(T x) {
+    return x * x;
+  }
+
+  double calculateParametersError(SVDParameters &parameters) {
     double error = 0.0;
     for (auto userId : parameters.ratings) {
       for (auto itemId : parameters.ratings[userId.first]) {
         Film film = Film(userId.first, itemId.first, parameters.ratings[userId.first][itemId.first]);
-        double predictedRate = getRate(film, parameters);
-        double difference = film.rate - predictedRate;
-        error += difference * difference;
-        error += parameters.lambda * (normalizedSquare(parameters.pu[userId.first]) + normalizedSquare(parameters.qi[itemId.first]) + 
-                                      parameters.bu[userId.first] * parameters.bu[userId.first] +
-                                      parameters.bi[itemId.first] * parameters.bi[itemId.first]);
+        error += sqr(film.rating - predictRating(film, parameters)) +
+                 parameters.lambda * (squareOfNorm(parameters.pu[userId.first]) + 
+                                      squareOfNorm(parameters.qi[itemId.first]) + 
+                                      sqr(parameters.bu[userId.first]) +
+                                      sqr(parameters.bi[itemId.first]));
       }
     }
     return error;
   }
 
   SVDParameters solve(const SVDParameters &parameters) {
-    fprintf(stderr, "Using parameters: lambda=%.6f, f=%d, gamma=%.6f, mu = %.6f\n", parameters.lambda, parameters.f,
+    fprintf(stderr, "Using parameters: lambda=%.6f, number_of_films=%d, gamma=%.6f, mu = %.6f\n", parameters.lambda, parameters.number_of_films,
                                                                                     parameters.gamma, parameters.mu);
     double error = 0.0;
-    double previousError = 1.0;
+    double lastError = 1.0;
 
-    SVDParameters newParameters = SVDParameters(parameters.lambda, parameters.f, parameters.gamma, parameters.mu);
-
-    int i = 0;
-    while (i < MAX_ITERATIONS && std::abs(error - previousError) > EPS) {
-      int size = 0;
+    SVDParameters answer = SVDParameters(parameters.lambda, parameters.number_of_films, parameters.gamma, parameters.mu);
+    for (int i = 0; i < MAX_ITERATIONS && std::abs(error - lastError) > EPS; i++) {
       for (const Train &train : trains) {
         int userId = train.userId;
         int itemId = train.itemId;
-        int rate = train.rate;
+        int rating = train.rating;
 
         if (i == 0) {
-          newParameters.pu[userId] = generateRandomArray(newParameters.f);
-          newParameters.qi[itemId] = generateRandomArray(newParameters.f);
-          newParameters.bu[userId] = 0.0;
-          newParameters.bi[itemId] = 0.0;
-          newParameters.ratings[userId][itemId] = rate;
+          answer.pu[userId] = generateRandomValues(answer.number_of_films);
+          answer.qi[itemId] = generateRandomValues(answer.number_of_films);
+          answer.ratings[userId][itemId] = rating;
         }
 
-        size++;
+        double nbu = answer.bu[userId];
+        double nbi = answer.bi[itemId];
+        std::vector<double> &nqi = answer.qi[itemId];
+        std::vector<double> &npu = answer.pu[userId];
 
-        double cbu = newParameters.bu[userId];
-        double cbi = newParameters.bi[itemId];
-        std::vector<double> cqi = newParameters.qi[itemId];
-        std::vector<double> cpu = newParameters.pu[userId];
+        double predictedRating = parameters.mu + nbu + nbi + scal(npu, nqi);
+        double error = rating - predictedRating;
 
-        double predictedRate = newParameters.mu + cbi + cbu + scal(cqi, cpu);
-        double e = rate - predictedRate;
+        answer.bu[userId] = nbu + answer.gamma * (error - answer.lambda * nbu);
+        answer.bi[itemId] = nbi + answer.gamma * (error - answer.lambda * nbi);
 
-        newParameters.bu[userId] = cbu + newParameters.gamma * (e - newParameters.lambda * cbu);
-        newParameters.bi[itemId] = cbi + newParameters.gamma * (e - newParameters.lambda * cbi);
-
-        for (int k = 0; k < newParameters.f; k++) {
-          double qi = cqi[k];
-          double pu = cpu[k];
-          cqi[k] = qi + newParameters.gamma * (e * pu - newParameters.lambda * qi);
-          cpu[k] = pu + newParameters.gamma * (e * qi - newParameters.lambda * pu);
+        for (int j = 0; j < answer.number_of_films; j++) {
+          double qi = nqi[j];
+          double pu = npu[j];
+          nqi[j] = qi + answer.gamma * (error * pu - answer.lambda * qi);
+          npu[j] = pu + answer.gamma * (error * qi - answer.lambda * pu);
         }
       }
-      newParameters.gamma *= 0.9;
-      previousError = error;
-      error = countError(newParameters);
-      i++;
+      answer.gamma *= DELTA_GAMMA;
+      lastError = error;
+      error = calculateParametersError(answer);
       fclose(stdin);
-
       fprintf(stderr, "Finished %d/%d iterations, error = %.10f\n", i, MAX_ITERATIONS, error);
     }
-    newParameters.error = error;
-    return newParameters;
-  }
-
-  double calcRMSE(SVDParameters &parameters) {
-    SVDParameters newParameters = solve(parameters);
-    /*char s[MAX_LENGTH];
-    if (isValidationEnabled) {
-      double rmse = 0.0;
-      int size = 0;
-      freopen(validation, "r", stdin);
-      scanf("%s", s);
-      while (scanf("%s", s) >= 1) {
-        std::vector<std::string> parts = split(s, ',');
-        long long userId = std::stoll(strip(parts[0]));
-        long long itemId = std::stoll(strip(parts[1]));
-        int rate = std::stoi(strip(parts[2]));
-        size++;
-        Film film = Film(userId, itemId, rate);
-        double e = getRate(film, parameters) - film.rate;
-        rmse += e * e;
-      }
-      fclose(stdin);
-      return sqrt(rmse / size);
-    }*/
-    return newParameters.error;
+    answer.error = error;
+    return answer;
   }
 
   SVDParameters learn() {
@@ -223,12 +187,13 @@ struct SVD {
     parameters.error = 1e18;
     parameters.mu = MU;
 
-    for (double lambda = MIN_LAMBDA; lambda <= MAX_LAMBDA; lambda += STEP_LAMBDA) {
-      for (int f = MIN_F; f <= MAX_F; f += STEP_F) {
-        SVDParameters tmpParameters = SVDParameters(lambda, f, MIN_GAMMA, MU);
-        double error = calcRMSE(tmpParameters);
+    //for (double lambda = MIN_LAMBDA; lambda <= MAX_LAMBDA; lambda += DELTA_LAMBDA) {
+    for (double lambda = OPTIMAL_LAMBDA; lambda <= OPTIMAL_LAMBDA; lambda += DELTA_LAMBDA) {
+      for (int number_of_films = MIN_NUMBER_OF_FILMS; number_of_films <= MAX_NUMBER_OF_FILMS; number_of_films += DELTA_NUMBER_OF_FILMS) {
+        SVDParameters tmpParameters = SVDParameters(lambda, number_of_films, OPTIMAL_GAMMA, MU);
+        double error = solve(tmpParameters).error;
         if (parameters.error > error) {
-          parameters = SVDParameters(lambda, f, MIN_GAMMA, MU);
+          parameters = SVDParameters(lambda, number_of_films, OPTIMAL_GAMMA, MU);
           parameters.error = error;
         }
       }

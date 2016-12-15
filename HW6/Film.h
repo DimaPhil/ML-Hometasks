@@ -4,12 +4,12 @@
 struct Film {
   long long userId;
   long long itemId;
-  double rate;
+  double rating;
 
   Film() {
   }
   
-  Film(long long userId, long long itemId, double rate) : userId(userId), itemId(itemId), rate(rate) {
+  Film(long long userId, long long itemId, double rating) : userId(userId), itemId(itemId), rating(rating) {
   }
 };
 
