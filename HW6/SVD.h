@@ -185,7 +185,10 @@ struct SVD {
       //fprintf(stderr, "Finished %d/%d iterations, error = %.10f\n", i + 1, MAX_ITERATIONS, error);
       fprintf(stderr, "Finished %d/%d iterations\n", i + 1, MAX_ITERATIONS);
     }
-    answer.error = error;
+    //answer.error = error;
+    //fprintf(stderr, "Started calculating error\n");
+    //answer.error = calculateParametersError(answer);
+    answer.error = 0;
     return answer;
   }
 
@@ -198,15 +201,15 @@ struct SVD {
     for (double lambda = OPTIMAL_LAMBDA; lambda <= OPTIMAL_LAMBDA; lambda += DELTA_LAMBDA) {
       for (int best_films_count = MIN_NUMBER_OF_BEST; best_films_count <= MAX_NUMBER_OF_BEST; best_films_count += DELTA_NUMBER_OF_BEST) {
         SVDParameters tmpParameters = SVDParameters(lambda, best_films_count, OPTIMAL_GAMMA, MU);
-        double error = solve(tmpParameters).error;
-        if (parameters.error > error) {
+        SVDParameters answer = solve(tmpParameters);
+        if (parameters.error > answer.error) {
           parameters = SVDParameters(lambda, best_films_count, OPTIMAL_GAMMA, MU);
           parameters.error = error;
         }
       }
     }
 
-    return solve(parameters);
+    return parameters;
   }
 };
 
