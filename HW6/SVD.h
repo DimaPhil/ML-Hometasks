@@ -144,6 +144,7 @@ struct SVD {
 
     SVDParameters answer = SVDParameters(parameters.lambda, parameters.best_films_count, parameters.gamma, parameters.mu);
     for (int i = 0; i < MAX_ITERATIONS && std::abs(error - lastError) > EPS; i++) {
+      int counter = 0;
       for (const Train &train : trains) {
         int userId = train.userId;
         int itemId = train.itemId;
@@ -167,11 +168,13 @@ struct SVD {
         answer.bi[itemId] = nbi + answer.gamma * (error - answer.lambda * nbi);
 
         for (int j = 0; j < answer.best_films_count; j++) {
-          fprintf(stderr, "Analyzing best film %d\n", j + 1);
           double qi = nqi[j];
           double pu = npu[j];
           nqi[j] = qi + answer.gamma * (error * pu - answer.lambda * qi);
           npu[j] = pu + answer.gamma * (error * qi - answer.lambda * pu);
+        }
+        if (++counter % 10000000 == 0) {
+            fprintf(stderr, "Finished analyzing train #%d\n", counter);
         }
       }
       answer.gamma *= DELTA_GAMMA;
