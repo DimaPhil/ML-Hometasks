@@ -78,6 +78,7 @@ struct SVD {
 
         trains.emplace_back(userId, itemId, rating);
       }
+      fclose(stdin);
       std::cerr << "Average rating: " << (double)sumRate / static_cast<int>(trains.size()) << '\n';
   }
 
@@ -166,6 +167,7 @@ struct SVD {
         answer.bi[itemId] = nbi + answer.gamma * (error - answer.lambda * nbi);
 
         for (int j = 0; j < answer.best_films_count; j++) {
+          fprintf(stderr, "Analyzing best film %d\n", j + 1);
           double qi = nqi[j];
           double pu = npu[j];
           nqi[j] = qi + answer.gamma * (error * pu - answer.lambda * qi);
@@ -174,8 +176,8 @@ struct SVD {
       }
       answer.gamma *= DELTA_GAMMA;
       lastError = error;
+      fprintf(stderr, "Started re-calculating error\n");
       error = calculateParametersError(answer);
-      fclose(stdin);
       fprintf(stderr, "Finished %d/%d iterations, error = %.10f\n", i + 1, MAX_ITERATIONS, error);
     }
     answer.error = error;
