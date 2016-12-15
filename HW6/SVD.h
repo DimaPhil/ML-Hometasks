@@ -26,9 +26,9 @@ struct SVD {
   const double DELTA_LAMBDA = 0.001;
   const double OPTIMAL_LAMBDA = 0.005;
 
-  const int MIN_NUMBER_OF_FILMS = 10;
-  const int MAX_NUMBER_OF_FILMS = 15;
-  const int DELTA_NUMBER_OF_FILMS = 5;
+  const int MIN_NUMBER_OF_BEST = 5;
+  const int MAX_NUMBER_OF_BEST = 5;
+  const int DELTA_NUMBER_OF_BEST = 5;
 
   const double OPTIMAL_GAMMA = 0.005;
   const double DELTA_GAMMA = 0.9;
@@ -136,12 +136,12 @@ struct SVD {
   }
 
   SVDParameters solve(const SVDParameters &parameters) {
-    fprintf(stderr, "Using parameters: lambda=%.6f, number_of_films=%d, gamma=%.6f, mu = %.6f\n", parameters.lambda, parameters.number_of_films,
+    fprintf(stderr, "Using parameters: lambda=%.6f, best_films_count=%d, gamma=%.6f, mu = %.6f\n", parameters.lambda, parameters.best_films_count,
                                                                                     parameters.gamma, parameters.mu);
     double error = 0.0;
     double lastError = 1.0;
 
-    SVDParameters answer = SVDParameters(parameters.lambda, parameters.number_of_films, parameters.gamma, parameters.mu);
+    SVDParameters answer = SVDParameters(parameters.lambda, parameters.best_films_count, parameters.gamma, parameters.mu);
     for (int i = 0; i < MAX_ITERATIONS && std::abs(error - lastError) > EPS; i++) {
       for (const Train &train : trains) {
         int userId = train.userId;
@@ -149,8 +149,8 @@ struct SVD {
         int rating = train.rating;
 
         if (i == 0) {
-          answer.pu[userId] = generateRandomValues(answer.number_of_films);
-          answer.qi[itemId] = generateRandomValues(answer.number_of_films);
+          answer.pu[userId] = generateRandomValues(answer.best_films_count);
+          answer.qi[itemId] = generateRandomValues(answer.best_films_count);
           answer.ratings[userId][itemId] = rating;
         }
 
@@ -165,7 +165,7 @@ struct SVD {
         answer.bu[userId] = nbu + answer.gamma * (error - answer.lambda * nbu);
         answer.bi[itemId] = nbi + answer.gamma * (error - answer.lambda * nbi);
 
-        for (int j = 0; j < answer.number_of_films; j++) {
+        for (int j = 0; j < answer.best_films_count; j++) {
           double qi = nqi[j];
           double pu = npu[j];
           nqi[j] = qi + answer.gamma * (error * pu - answer.lambda * qi);
@@ -176,7 +176,7 @@ struct SVD {
       lastError = error;
       error = calculateParametersError(answer);
       fclose(stdin);
-      fprintf(stderr, "Finished %d/%d iterations, error = %.10f\n", i, MAX_ITERATIONS, error);
+      fprintf(stderr, "Finished %d/%d iterations, error = %.10f\n", i + 1, MAX_ITERATIONS, error);
     }
     answer.error = error;
     return answer;
@@ -189,11 +189,11 @@ struct SVD {
 
     //for (double lambda = MIN_LAMBDA; lambda <= MAX_LAMBDA; lambda += DELTA_LAMBDA) {
     for (double lambda = OPTIMAL_LAMBDA; lambda <= OPTIMAL_LAMBDA; lambda += DELTA_LAMBDA) {
-      for (int number_of_films = MIN_NUMBER_OF_FILMS; number_of_films <= MAX_NUMBER_OF_FILMS; number_of_films += DELTA_NUMBER_OF_FILMS) {
-        SVDParameters tmpParameters = SVDParameters(lambda, number_of_films, OPTIMAL_GAMMA, MU);
+      for (int best_films_count = MIN_NUMBER_OF_BEST; best_films_count <= MAX_NUMBER_OF_BEST; best_films_count += DELTA_NUMBER_OF_BEST) {
+        SVDParameters tmpParameters = SVDParameters(lambda, best_films_count, OPTIMAL_GAMMA, MU);
         double error = solve(tmpParameters).error;
         if (parameters.error > error) {
-          parameters = SVDParameters(lambda, number_of_films, OPTIMAL_GAMMA, MU);
+          parameters = SVDParameters(lambda, best_films_count, OPTIMAL_GAMMA, MU);
           parameters.error = error;
         }
       }

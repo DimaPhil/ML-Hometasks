@@ -33,7 +33,9 @@ int main(int argc, char **argv) {
     freopen(submission, "r", stdin);
     fprintf(stderr, "Calculating RMSE of output...\n");
     scanf("%s", s);
+    int size = 0;
     while (scanf("%s", s) >= 1) {
+      size++;
       std::vector<std::string> parts = split(s, ',');
       long long userId = std::stoll(strip(parts[0]));
       long long itemId = std::stoll(strip(parts[1]));
