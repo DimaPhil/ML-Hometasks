@@ -93,7 +93,7 @@ struct SVD {
     return std::move(as);
   }
 
-  double scal(const std::vector<double> &pu, const std::vector<double> &qi) {
+  inline double scal(const std::vector<double> &pu, const std::vector<double> &qi) {
     double answer = 0;
     assert(pu.size() == qi.size());
     for (size_t i = 0; i < pu.size(); i++) {
@@ -102,11 +102,11 @@ struct SVD {
     return answer;
   }
 
-  double squareOfNorm(const std::vector<double> &as) {
+  inline double squareOfNorm(const std::vector<double> &as) {
     return scal(as, as);
   }
 
-  int predictRating(const Film &film, SVDParameters &parameters) {
+  inline int predictRating(const Film &film, SVDParameters &parameters) {
     double result = parameters.mu + 
                     parameters.bu[film.userId] + 
                     parameters.bi[film.itemId] +
@@ -117,7 +117,7 @@ struct SVD {
   }
 
   template<class T>
-  T sqr(T x) {
+  inline T sqr(T x) {
     return x * x;
   }
 
@@ -139,11 +139,12 @@ struct SVD {
   SVDParameters solve(const SVDParameters &parameters) {
     fprintf(stderr, "Using parameters: lambda=%.6f, best_films_count=%d, gamma=%.6f, mu = %.6f\n", parameters.lambda, parameters.best_films_count,
                                                                                     parameters.gamma, parameters.mu);
-    double error = 0.0;
-    double lastError = 1.0;
+    //double error = 0.0;
+    //double lastError = 1.0;
 
     SVDParameters answer = SVDParameters(parameters.lambda, parameters.best_films_count, parameters.gamma, parameters.mu);
-    for (int i = 0; i < MAX_ITERATIONS && std::abs(error - lastError) > EPS; i++) {
+    //for (int i = 0; i < MAX_ITERATIONS && std::abs(error - lastError) > EPS; i++) {
+    for (int i = 0; i < MAX_ITERATIONS; i++) {
       int counter = 0;
       for (const Train &train : trains) {
         int userId = train.userId;
@@ -162,26 +163,27 @@ struct SVD {
         std::vector<double> &npu = answer.pu[userId];
 
         double predictedRating = parameters.mu + nbu + nbi + scal(npu, nqi);
-        double error = rating - predictedRating;
+        double errorPredicted = rating - predictedRating;
 
-        answer.bu[userId] = nbu + answer.gamma * (error - answer.lambda * nbu);
-        answer.bi[itemId] = nbi + answer.gamma * (error - answer.lambda * nbi);
+        answer.bu[userId] = nbu + answer.gamma * (errorPredicted - answer.lambda * nbu);
+        answer.bi[itemId] = nbi + answer.gamma * (errorPredicted - answer.lambda * nbi);
 
         for (int j = 0; j < answer.best_films_count; j++) {
           double qi = nqi[j];
           double pu = npu[j];
-          nqi[j] = qi + answer.gamma * (error * pu - answer.lambda * qi);
-          npu[j] = pu + answer.gamma * (error * qi - answer.lambda * pu);
+          nqi[j] = qi + answer.gamma * (errorPredicted * pu - answer.lambda * qi);
+          npu[j] = pu + answer.gamma * (errorPredicted * qi - answer.lambda * pu);
         }
         if (++counter % 10000000 == 0) {
             fprintf(stderr, "Finished analyzing train #%d\n", counter);
         }
       }
       answer.gamma *= DELTA_GAMMA;
-      lastError = error;
-      fprintf(stderr, "Started re-calculating error\n");
-      error = calculateParametersError(answer);
-      fprintf(stderr, "Finished %d/%d iterations, error = %.10f\n", i + 1, MAX_ITERATIONS, error);
+      //lastError = error;
+      //fprintf(stderr, "Started re-calculating error\n");
+      //error = calculateParametersError(answer);
+      //fprintf(stderr, "Finished %d/%d iterations, error = %.10f\n", i + 1, MAX_ITERATIONS, error);
+      fprintf(stderr, "Finished %d/%d iterations\n", i + 1, MAX_ITERATIONS);
     }
     answer.error = error;
     return answer;
