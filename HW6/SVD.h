@@ -26,8 +26,8 @@ struct SVD {
   const double DELTA_LAMBDA = 0.001;
   const double OPTIMAL_LAMBDA = 0.005;
 
-  const int MIN_NUMBER_OF_BEST = 5;
-  const int MAX_NUMBER_OF_BEST = 5;
+  const int MIN_NUMBER_OF_BEST = 10;
+  const int MAX_NUMBER_OF_BEST = 10;
   const int DELTA_NUMBER_OF_BEST = 5;
 
   const double OPTIMAL_GAMMA = 0.005;
@@ -204,7 +204,7 @@ struct SVD {
         SVDParameters answer = solve(tmpParameters);
         if (parameters.error > answer.error) {
           parameters = SVDParameters(lambda, best_films_count, OPTIMAL_GAMMA, MU);
-          parameters.error = error;
+          parameters.error = answer.error;
         }
       }
     }

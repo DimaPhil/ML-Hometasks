@@ -7,11 +7,12 @@ const int MAX_LENGTH = 50;
 int main(int argc, char **argv) {
   SVD svd = SVD("data/train.csv");
   SVDParameters bestParameters = svd.learn();
+  fprintf(stderr, "Finished learning\n");
   const char *submission = "ans-submission.csv";
   freopen(submission, "w", stdout);
   printf("Id,Prediction\n");
   freopen("data/test-ids.csv", "r", stdin);
-  fprintf(stderr, "Reading test-ids.csv...");
+  fprintf(stderr, "Reading test-ids.csv...\n");
   char s[MAX_LENGTH];
   scanf("%s", s);
   while (scanf("%s", s) >= 1) {
@@ -21,6 +22,8 @@ int main(int argc, char **argv) {
     long long itemId = std::stoll(strip(parts[2]));
     printf("%lld,%d\n", testId, svd.predictRating(Film(userId, itemId, 0), bestParameters));
   }
+  fclose(stdin);
+  fclose(stdout);
   fprintf(stderr, "Finished, submission is ready");
   bool found = false;
   for (int i = 0; i < argc; i++) {
