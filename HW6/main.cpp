@@ -8,6 +8,7 @@ int main(int argc, char **argv) {
   SVD svd = SVD("data/train.csv");
   SVDParameters bestParameters = svd.learn();
   fprintf(stderr, "Finished learning\n");
+  fprintf(stderr, "Best parameters: lambda = %.5f, best = %d\n", bestParameters.lambda, bestParameters.best_films_count);
   const char *submission = "ans-submission.csv";
   freopen(submission, "w", stdout);
   printf("Id,Prediction\n");
@@ -24,8 +25,8 @@ int main(int argc, char **argv) {
   }
   fclose(stdin);
   fclose(stdout);
-  fprintf(stderr, "Finished, submission is ready");
-  bool found = false;
+  fprintf(stderr, "Finished, submission is ready\n");
+  /*bool found = false;
   for (int i = 0; i < argc; i++) {
     if (!strcmp(argv[i], "--output-rmse")) {
       found = true;
@@ -49,5 +50,5 @@ int main(int argc, char **argv) {
     }
     fclose(stdin);
     fprintf(stderr, "RMSE: %.5f\n", sqrt(rmse / size));
-  }
+  }*/
 }
