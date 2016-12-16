@@ -65,10 +65,14 @@ struct SVD {
       getLine(s);
       int counter = 0;
       int sumRate = 0;
+      int minUserId = LLONG_MAX;
+      int maxUserId = 0;
+      int minItemId = LLONG_MAX;
+      int maxItemId = 0;
       while (getLine(s)) {
         std::vector<std::string> parts = split(s, ',');
         if (++counter % 1000000 == 0) {
-          std::cerr << counter << " lines read\n";
+          fprintf(stderr, "%d lines read\n", counter);
         }
 
         long long userId = std::stoll(strip(parts[0]));
@@ -76,10 +80,16 @@ struct SVD {
         int rating = std::stoi(strip(parts[2]));
         sumRate += rating;
 
+        minUserId = std::min(minUserId, userId);
+        maxUserId = std::max(maxUserId, userId);
+        minItemId = std::min(minItemId, itemId);
+        maxItemId = std::max(maxItemId, itemId);
         trains.emplace_back(userId, itemId, rating);
       }
       fclose(stdin);
-      std::cerr << "Average rating: " << (double)sumRate / static_cast<int>(trains.size()) << '\n';
+      fprintf(stderr, "userId: [%lld, %lld]\n", minUserId, maxUserId);
+      fprintf(stderr, "itemId: [%lld, %lld]\n", minItemId, maxItemId);
+      fprintf(stderr, "Average rating: %.5f\n", (double)sumRate / static_cast<int>(trains.size()));
   }
 
   std::vector<double> generateRandomValues(int n) {
@@ -212,12 +222,13 @@ struct SVD {
       int best_films_count = MIN_NUMBER_OF_BEST;
       {
         SVDParameters tmpParameters = SVDParameters(lambda, best_films_count, OPTIMAL_GAMMA, MU);
-        SVDParameters answer = solve(tmpParameters);
+        //SVDParameters answer = solve(tmpParameters);
+        parameters = solve(tmpParameters);
 	fprintf(stderr, "Returned back to learn()\n");
 	fflush(stderr);
-        if (parameters.error > answer.error) {
-	  parameters = answer;
-        }
+        //if (parameters.error > answer.error) {
+	  //parameters = answer;
+        //}
 	fprintf(stderr, "Updated error, lambda = %.5f, best = %d\n", lambda, best_films_count);
 	fflush(stderr);
       }
