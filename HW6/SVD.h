@@ -18,16 +18,16 @@ struct SVD {
   const int MAX_LENGTH = 50;
 
   const double MU = 3.6033; //average rating
-  const int MAX_ITERATIONS = 10;
+  const int MAX_ITERATIONS = 20;
   const int EPS = 1e-6;
 
-  const double MIN_LAMBDA = 0.003;
-  const double MAX_LAMBDA = 0.007;
+  const double MIN_LAMBDA = 0.005;
+  const double MAX_LAMBDA = 0.005;
   const double DELTA_LAMBDA = 0.001;
   const double OPTIMAL_LAMBDA = 0.003;
 
-  const int MIN_NUMBER_OF_BEST = 10;
-  const int MAX_NUMBER_OF_BEST = 10;
+  const int MIN_NUMBER_OF_BEST = 15;
+  const int MAX_NUMBER_OF_BEST = 15;
   const int DELTA_NUMBER_OF_BEST = 5;
 
   const double OPTIMAL_GAMMA = 0.005;
@@ -65,10 +65,10 @@ struct SVD {
       getLine(s);
       int counter = 0;
       int sumRate = 0;
-      int minUserId = LLONG_MAX;
-      int maxUserId = 0;
-      int minItemId = LLONG_MAX;
-      int maxItemId = 0;
+      long long minUserId = LLONG_MAX;
+      long long maxUserId = 0;
+      long long minItemId = LLONG_MAX;
+      long long maxItemId = 0;
       while (getLine(s)) {
         std::vector<std::string> parts = split(s, ',');
         if (++counter % 1000000 == 0) {
@@ -137,7 +137,7 @@ struct SVD {
     return x * x;
   }
 
-  double calculateParametersError(SVDParameters &parameters) {
+  /*double calculateParametersError(SVDParameters &parameters) {
     double error = 0.0;
     for (auto userId : parameters.ratings) {
       for (auto itemId : parameters.ratings[userId.first]) {
@@ -150,7 +150,7 @@ struct SVD {
       }
     }
     return error;
-  }
+  }*/
 
   SVDParameters solve(const SVDParameters &parameters) {
     fprintf(stderr, "Using parameters: lambda=%.6f, best_films_count=%d, gamma=%.6f, mu = %.6f\n", parameters.lambda, parameters.best_films_count,
@@ -170,7 +170,7 @@ struct SVD {
         if (i == 0) {
           answer.pu[userId] = generateRandomValues(answer.best_films_count);
           answer.qi[itemId] = generateRandomValues(answer.best_films_count);
-          answer.ratings[userId][itemId] = rating;
+          //answer.ratings[userId][itemId] = rating;
         }
 
         double nbu = answer.bu[userId];
@@ -214,7 +214,7 @@ struct SVD {
     parameters.error = 1e18;
     parameters.mu = MU;
 
-    for (double lambda = MIN_LAMBDA; lambda <= MIN_LAMBDA; lambda += DELTA_LAMBDA) {
+    for (double lambda = MIN_LAMBDA; lambda <= MAX_LAMBDA; lambda += DELTA_LAMBDA) {
     //for (double lambda = OPTIMAL_LAMBDA; lambda <= OPTIMAL_LAMBDA; lambda += DELTA_LAMBDA) {
     //double lambda = OPTIMAL_LAMBDA;
     //{

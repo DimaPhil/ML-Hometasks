@@ -15,7 +15,7 @@ struct SVDParameters {
   boost::unordered_map<long long, std::vector<double>> pu;
   boost::unordered_map<long long, std::vector<double>> qi;
   int best_films_count;
-  boost::unordered_map<long long, boost::unordered_map<long long, int>> ratings;
+  //boost::unordered_map<long long, boost::unordered_map<long long, int>> ratings;
   double error;
 
   SVDParameters() {
