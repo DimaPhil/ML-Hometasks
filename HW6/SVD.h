@@ -63,15 +63,14 @@ struct SVD {
   }
 
   SVD(const char* filename) : filename(filename) {
-      fprintf(stderr, "HERE\n");
       char s[MAX_LENGTH];
       freopen(filename, "r", stdin);
       getLine(s);
       int counter = 0;
       int sumRate = 0;
-      int minUserId = static_cast<int>(1e9);
+      int minUserId = INT_MAX;
       int maxUserId = 0;
-      int minItemId = static_cast<int>(1e9);
+      int minItemId = INT_MAX;
       int maxItemId = 0;
       fprintf(stderr, "Started reading...\n");
       while (getLine(s)) {

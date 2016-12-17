@@ -5,8 +5,6 @@
 const int MAX_LENGTH = 50;
 
 int main(int argc, char **argv) {
-  fprintf(stderr, "!!!\n");
-  fflush(stderr);
   SVD svd = SVD("data/train.csv");
   SVDParameters bestParameters = svd.learn();
   fprintf(stderr, "Finished learning\n");
