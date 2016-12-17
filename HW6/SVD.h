@@ -128,7 +128,7 @@ struct SVD {
         }
       }*/
       //as[i] = (1.0 / n) * (rand() * 1.0 / RAND_MAX);
-      as[i] = nextGaussian(haveNextNextGaussian, nextNextGaussian);
+      as[i] = (1.0 / n) * nextGaussian(haveNextNextGaussian, nextNextGaussian);
     }
     return std::move(as);
   }
