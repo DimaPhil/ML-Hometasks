@@ -21,8 +21,8 @@ struct SVD {
   const int MAX_ITERATIONS = 20;
   const int EPS = 1e-6;
 
-  const double MIN_LAMBDA = 0.005;
-  const double MAX_LAMBDA = 0.005;
+  const double MIN_LAMBDA = 0.004;
+  const double MAX_LAMBDA = 0.004;
   const double DELTA_LAMBDA = 0.001;
   const double OPTIMAL_LAMBDA = 0.003;
 
@@ -93,6 +93,7 @@ struct SVD {
   }
 
   std::vector<double> generateRandomValues(int n) {
+    srand(time(nullptr));
     std::vector<double> as(n);
     double min = 0.0;
     double max = 1.0 / n;
@@ -178,8 +179,9 @@ struct SVD {
         std::vector<double> &nqi = answer.qi[itemId];
         std::vector<double> &npu = answer.pu[userId];
 
-        double predictedRating = answer.mu + nbu + nbi + scal(npu, nqi, answer.best_films_count);
-        double errorPredicted = rating - predictedRating;
+        //double predictedRating = answer.mu + nbu + nbi + scal(npu, nqi, answer.best_films_count);
+        //double errorPredicted = rating - predictedRating;
+        double errorPredicted = 
 
         answer.bu[userId] = nbu + answer.gamma * (errorPredicted - answer.lambda * nbu);
         answer.bi[itemId] = nbi + answer.gamma * (errorPredicted - answer.lambda * nbi);
