@@ -28,16 +28,16 @@ struct SVD {
   const double DELTA_LAMBDA = 0.001;
   const double OPTIMAL_LAMBDA = 0.003;
 
-  const int MIN_NUMBER_OF_BEST = 10;
-  const int MAX_NUMBER_OF_BEST = 10;
+  const int MIN_NUMBER_OF_BEST = 20;
+  const int MAX_NUMBER_OF_BEST = 20;
   const int DELTA_NUMBER_OF_BEST = 5;
 
   const double OPTIMAL_GAMMA = 0.005;
-  const double DELTA_GAMMA = 0.9;
+  const double DELTA_GAMMA = 0.95;
   std::vector<Train> trains;
 
-  std::default_random_engine generator;
-  std::normal_distribution<double> distribution;
+  //std::default_random_engine generator;
+  //std::normal_distribution<double> distribution;
 
   bool getLine(char *s) {
     char c;
@@ -101,13 +101,14 @@ struct SVD {
     srand(time(nullptr));
     std::vector<double> as(n);
     for (int i = 0; i < n; i++) {
-      while (true) {
+      /*while (true) {
         double number = distribution(generator);
         if (0 <= number && number <= 1.0 / n) {
           as[i] = number;
           break;
         }
-      }
+      }*/
+      as[i] = (1.0 / n) * (rand() * 1.0 / RAND_MAX);
     }
     return std::move(as);
   }
@@ -215,7 +216,6 @@ struct SVD {
     //answer.error = calculateParametersError(answer);
     answer.error = 0;
     fprintf(stderr, "Finished solve()\n");
-    return answer;
   }
 
   SVDParameters learn() {
@@ -223,9 +223,9 @@ struct SVD {
     parameters.error = 1e18;
     parameters.mu = MU;
 
-    size_t seed = std::chrono::system_clock::now().time_since_epoch().count();
-    generator = std::default_random_engine(seed);
-    distribution = std::normal_distribution<double>(5.0, 2.0);
+    //size_t seed = std::chrono::system_clock::now().time_since_epoch().count();
+    //generator = std::default_random_engine(seed);
+    //distribution = std::normal_distribution<double>(5.0, 2.0);
 
     for (double lambda = MIN_LAMBDA; lambda <= MAX_LAMBDA; lambda += DELTA_LAMBDA) {
     //for (double lambda = OPTIMAL_LAMBDA; lambda <= OPTIMAL_LAMBDA; lambda += DELTA_LAMBDA) {
