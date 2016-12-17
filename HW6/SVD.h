@@ -97,10 +97,10 @@ struct SVD {
   }
 
   double nextGaussian(bool &haveNextNextGaussian, double &nextNextGaussian) {
-    if (haveNextNextGaussian) {
-      haveNextNextGaussian = false;
-      return nextNextGaussian;
-    } else {
+    //if (haveNextNextGaussian) {
+    //  haveNextNextGaussian = false;
+    //  return nextNextGaussian;
+    /*} else*/ {
       double v1, v2, s;
       do {
         v1 = 2 * (rand() * 1.0 / RAND_MAX) - 1;
