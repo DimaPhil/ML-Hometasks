@@ -20,7 +20,7 @@ struct SVD {
   const int MAX_LENGTH = 50;
 
   const double MU = 3.6033; //average rating
-  const int MAX_ITERATIONS = 20;
+  const int MAX_ITERATIONS = 50;
   const int EPS = 1e-6;
 
   const double MIN_LAMBDA = 0.003;
@@ -28,11 +28,11 @@ struct SVD {
   const double DELTA_LAMBDA = 0.001;
   const double OPTIMAL_LAMBDA = 0.003;
 
-  const int MIN_NUMBER_OF_BEST = 10;
-  const int MAX_NUMBER_OF_BEST = 10;
+  const int MIN_NUMBER_OF_BEST = 15;
+  const int MAX_NUMBER_OF_BEST = 15;
   const int DELTA_NUMBER_OF_BEST = 5;
 
-  const double OPTIMAL_GAMMA = 0.003;
+  const double OPTIMAL_GAMMA = 0.005;
   const double DELTA_GAMMA = 1.0;
   std::vector<Train> trains;
 
@@ -127,8 +127,8 @@ struct SVD {
           break;
         }
       }*/
-      //as[i] = (1.0 / n) * (rand() * 1.0 / RAND_MAX);
-      as[i] = (1.0 / n) * nextGaussian(haveNextNextGaussian, nextNextGaussian);
+      as[i] = (1.0 / n) * (rand() * 1.0 / RAND_MAX);
+      //as[i] = (1.0 / n) * nextGaussian(haveNextNextGaussian, nextNextGaussian);
     }
     return std::move(as);
   }
