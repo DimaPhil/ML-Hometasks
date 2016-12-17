@@ -6,8 +6,8 @@
 #include <cstring>
 
 struct SVDParameters {
-  const int MAX_USER_ID = 480200;
-  const int MAX_ITEM_ID = 18000;
+  const static int MAX_USER_ID = 480200;
+  const static int MAX_ITEM_ID = 18000;
 
   double mu;
   double bu[MAX_USER_ID];
