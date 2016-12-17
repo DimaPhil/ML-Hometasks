@@ -96,9 +96,29 @@ struct SVD {
       fprintf(stderr, "Average rating: %.5f\n", (double)sumRate / static_cast<int>(trains.size()));
   }
 
+  double nextGaussian(bool &haveNextNextGaussian, double &nextNextGaussian) {
+    if (haveNextNextGaussian) {
+      haveNextNextGaussian = false;
+      return nextNextGaussian;
+    } else {
+      double v1, v2, s;
+      do {
+        v1 = 2 * (rand() * 1.0 / RAND_MAX) - 1;
+        v2 = 2 * (rand() * 1.0 / RAND_MAX) - 1;
+        s = v1 * v1 + v2 * v2;
+      } while (s >= 1 || s == 0);
+      double multiplier = sqrt(-2 * log(s) / s);
+      nextNextGaussian = v2 * multiplier;
+      haveNextNextGaussian = true;
+      return v1 * multiplier;
+    }
+  }  
+
   std::vector<double> generateRandomValues(int n) {
     srand(time(nullptr));
     std::vector<double> as(n);
+    bool haveNextNextGaussian = false;
+    double nextNextGaussian;
     for (int i = 0; i < n; i++) {
       /*while (true) {
         double number = distribution(generator);
@@ -107,7 +127,8 @@ struct SVD {
           break;
         }
       }*/
-      as[i] = (1.0 / n) * (rand() * 1.0 / RAND_MAX);
+      //as[i] = (1.0 / n) * (rand() * 1.0 / RAND_MAX);
+      as[i] = nextGaussian(haveNextNextGaussian, nextNextGaussian);
     }
     return std::move(as);
   }
