@@ -103,7 +103,7 @@ struct SVD {
     for (int i = 0; i < n; i++) {
       while (true) {
         double number = distribution(generator);
-        if (0 <= number && number <= 1) {
+        if (0 <= number && number <= 1.0 / n) {
           as[i] = number;
           break;
         }
