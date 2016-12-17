@@ -4,16 +4,18 @@
 #include <algorithm>
 #include <vector>
 #include <cstring>
-#include <boost/unordered_map.hpp>
 
 struct SVDParameters {
+  const int MAX_USER_ID = 480200;
+  const int MAX_ITEM_ID = 18000;
+
   double mu;
-  boost::unordered_map<long long, double> bu;
-  boost::unordered_map<long long, double> bi;
+  double bu[MAX_USER_ID];
+  double bi[MAX_ITEM_ID];
   double lambda;
   double gamma;
-  boost::unordered_map<long long, std::vector<double>> pu;
-  boost::unordered_map<long long, std::vector<double>> qi;
+  std::vector<double> pu[MAX_USER_ID];
+  std::vector<double> qi[MAX_ITEM_ID];
   int best_films_count;
   //boost::unordered_map<long long, boost::unordered_map<long long, int>> ratings;
   double error;

@@ -70,18 +70,18 @@ struct SVD {
       getLine(s);
       int counter = 0;
       int sumRate = 0;
-      long long minUserId = LLONG_MAX;
-      long long maxUserId = 0;
-      long long minItemId = LLONG_MAX;
-      long long maxItemId = 0;
+      int minUserId = INT_MAX;
+      int maxUserId = 0;
+      int minItemId = INT_MAX;
+      int maxItemId = 0;
       while (getLine(s)) {
         std::vector<std::string> parts = split(s, ',');
         if (++counter % 1000000 == 0) {
           fprintf(stderr, "%d lines read\n", counter);
         }
 
-        long long userId = std::stoll(strip(parts[0]));
-        long long itemId = std::stoll(strip(parts[1]));
+        int userId = std::stoi(strip(parts[0]));
+        int itemId = std::stoi(strip(parts[1]));
         int rating = std::stoi(strip(parts[2]));
         sumRate += rating;
 
@@ -92,8 +92,8 @@ struct SVD {
         trains.emplace_back(userId, itemId, rating);
       }
       fclose(stdin);
-      fprintf(stderr, "userId: [%lld, %lld]\n", minUserId, maxUserId);
-      fprintf(stderr, "itemId: [%lld, %lld]\n", minItemId, maxItemId);
+      fprintf(stderr, "userId: [%d, %d]\n", minUserId, maxUserId);
+      fprintf(stderr, "itemId: [%d, %d]\n", minItemId, maxItemId);
       fprintf(stderr, "Average rating: %.5f\n", (double)sumRate / static_cast<int>(trains.size()));
   }
 

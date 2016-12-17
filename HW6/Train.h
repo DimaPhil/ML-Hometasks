@@ -2,11 +2,11 @@
 #define TRAIN_H
 
 struct Train {
-  long long userId;
-  long long itemId;
+  int userId;
+  int itemId;
   int rating;
 
-  Train(long long userId, long long itemId, int rating) : userId(userId), itemId(itemId), rating(rating) {
+  Train(int userId, int itemId, int rating) : userId(userId), itemId(itemId), rating(rating) {
   }
 };
 

@@ -18,10 +18,10 @@ int main(int argc, char **argv) {
   scanf("%s", s);
   while (scanf("%s", s) >= 1) {
     std::vector<std::string> parts = split(s, ',');
-    long long testId = std::stoll(strip(parts[0]));
-    long long userId = std::stoll(strip(parts[1]));
-    long long itemId = std::stoll(strip(parts[2]));
-    printf("%lld,%d\n", testId, svd.predictRating(Film(userId, itemId, 0), bestParameters));
+    int testId = std::stoi(strip(parts[0]));
+    int userId = std::stoi(strip(parts[1]));
+    int itemId = std::stoi(strip(parts[2]));
+    printf("%d,%d\n", testId, svd.predictRating(Film(userId, itemId, 0), bestParameters));
   }
   fclose(stdin);
   fclose(stdout);
