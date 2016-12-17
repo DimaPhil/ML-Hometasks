@@ -28,12 +28,12 @@ struct SVD {
   const double DELTA_LAMBDA = 0.001;
   const double OPTIMAL_LAMBDA = 0.003;
 
-  const int MIN_NUMBER_OF_BEST = 20;
-  const int MAX_NUMBER_OF_BEST = 20;
+  const int MIN_NUMBER_OF_BEST = 10;
+  const int MAX_NUMBER_OF_BEST = 10;
   const int DELTA_NUMBER_OF_BEST = 5;
 
-  const double OPTIMAL_GAMMA = 0.005;
-  const double DELTA_GAMMA = 0.95;
+  const double OPTIMAL_GAMMA = 0.003;
+  const double DELTA_GAMMA = 1.0;
   std::vector<Train> trains;
 
   //std::default_random_engine generator;
@@ -215,6 +215,7 @@ struct SVD {
     //answer.error = calculateParametersError(answer);
     answer.error = 0;
     fprintf(stderr, "Finished solve()\n");
+    return answer;
   }
 
   SVDParameters learn() {
