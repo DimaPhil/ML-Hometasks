@@ -14,16 +14,16 @@ struct SVDParameters {
   double gamma;
   boost::unordered_map<int, std::vector<double>> pu;
   boost::unordered_map<int, std::vector<double>> qi;
-  int best_films_count;
-  //boost::unordered_map<long long, boost::unordered_map<long long, int>> ratings;
+  int f;
+  boost::unordered_map<long long, boost::unordered_map<long long, int>> ratings;
   double error;
 
   SVDParameters() {
   }
 
-  SVDParameters(double lambda, int best_films_count, double gamma, double mu) {
+  SVDParameters(double lambda, int f, double gamma, double mu) {
     this->lambda = lambda;
-    this->best_films_count = best_films_count;
+    this->f = f;
     this->gamma = gamma;
     this->mu = mu;
   }
