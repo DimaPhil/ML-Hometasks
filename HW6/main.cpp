@@ -8,7 +8,7 @@ int main(int argc, char **argv) {
   SVD svd = SVD("data/train.csv");
   SVDParameters bestParameters = svd.learn();
   fprintf(stderr, "Finished learning\n");
-  fprintf(stderr, "Best parameters: lambda = %.5f, best = %d\n", bestParameters.lambda, bestParameters.f);
+  fprintf(stderr, "Best parameters: lambda = %.5f, f = %d\n", bestParameters.lambda, bestParameters.f);
   const char *submission = "submission-new.csv";
   freopen(submission, "w", stdout);
   printf("Id,Prediction\n");
@@ -21,7 +21,7 @@ int main(int argc, char **argv) {
     int testId = std::stoi(strip(parts[0]));
     int userId = std::stoi(strip(parts[1]));
     int itemId = std::stoi(strip(parts[2]));
-    printf("%d,%d\n", testId, svd.predictRating(Film(userId, itemId, 0), bestParameters));
+    printf("%d,%.6f\n", testId, svd.predictRating(Film(userId, itemId, 0), bestParameters));
   }
   fclose(stdin);
   fclose(stdout);

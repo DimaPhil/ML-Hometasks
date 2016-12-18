@@ -15,7 +15,7 @@ struct SVDParameters {
   boost::unordered_map<int, std::vector<double>> pu;
   boost::unordered_map<int, std::vector<double>> qi;
   int f;
-  boost::unordered_map<long long, boost::unordered_map<long long, int>> ratings;
+  boost::unordered_map<int, boost::unordered_map<int, double>> ratings;
   double error;
 
   SVDParameters() {

@@ -13,7 +13,6 @@
 #include "SVDParameters.h"
 #include "Utils.h"
 #include "Film.h"
-#include "Train.h"
 
 struct SVD {
   const char* filename;
@@ -21,7 +20,6 @@ struct SVD {
 
   const double MU = 3.6033; //average rating
   const int MAX_ITERATIONS = 30;
-  const int EPS = 1e-7;
 
   const double MIN_LAMBDA = 0.001;
   const double MAX_LAMBDA = 0.010;
@@ -117,13 +115,12 @@ struct SVD {
     return answer;
   }
 
-  inline int predictRating(const Film &film, SVDParameters &parameters) {
-    double result = parameters.mu + 
+  inline double predictRating(const Film &film, SVDParameters &parameters) {
+    double rating = parameters.mu + 
                     parameters.bu[film.userId] + 
                     parameters.bi[film.itemId] +
                     scal(parameters.pu[film.userId], parameters.qi[film.itemId]);
-    int rating = static_cast<int>(result);
-    rating = std::min(5, std::max(1, rating));
+    rating = std::min(5.0, std::max(1.0, rating));
     return rating;
   }
 
@@ -148,26 +145,23 @@ struct SVD {
   }
 
   SVDParameters solve(const SVDParameters &parameters) {
-    fprintf(stderr, "Using parameters: lambda=%.6f, best_films_count=%d, gamma=%.6f, mu = %.6f\n", parameters.lambda, parameters.f,
+    fprintf(stderr, "Using parameters: lambda=%.6f, f=%d, gamma=%.6f, mu = %.6f\n", parameters.lambda, parameters.f,
                                                                                     parameters.gamma, parameters.mu);
     double error = 0.0;
     double lastError = 1.0;
 
     SVDParameters answer = SVDParameters(parameters.lambda, parameters.f, parameters.gamma, parameters.mu);
-    for (int i = 0; i < MAX_ITERATIONS && std::abs(error - lastError) > EPS; i++) {
+    for (int i = 0; i < MAX_ITERATIONS && std::abs(error - lastError) > 1e-7; i++) {
       int counter = 0;
+      for (const Film &train : trains) {
+        answer.pu[train.userId] = generateRandomValues(answer.f);
+        answer.qi[train.itemId] = generateRandomValues(answer.f);
+        answer.ratings[train.userId][train.itemId] = train.rating;
+      }
       for (const Film &train : trains) {
         int userId = train.userId;
         int itemId = train.itemId;
-        int rating = train.rating;
-
-        if (i == 0) {
-          answer.pu[userId] = generateRandomValues(answer.f);
-          answer.qi[itemId] = generateRandomValues(answer.f);
-          answer.bu[userId] = 0;
-          answer.bi[itemId] = 0;
-          answer.ratings[userId][itemId] = rating;
-        }
+        double rating = train.rating;
 
         double nbu = answer.bu[userId];
         double nbi = answer.bi[itemId];
