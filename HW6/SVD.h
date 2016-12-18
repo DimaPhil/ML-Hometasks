@@ -20,24 +20,20 @@ struct SVD {
   const int MAX_LENGTH = 50;
 
   const double MU = 3.6033; //average rating
-  const int MAX_ITERATIONS = 20;
-  const int EPS = 1e-6;
+  const int MAX_ITERATIONS = 30;
+  const int EPS = 1e-7;
 
-  const double MIN_LAMBDA = 0.002;
-  const double MAX_LAMBDA = 0.002;
+  const double MIN_LAMBDA = 0.001;
+  const double MAX_LAMBDA = 0.010;
   const double DELTA_LAMBDA = 0.001;
-  const double OPTIMAL_LAMBDA = 0.003;
 
-  const int MIN_NUMBER_OF_BEST = 10;
-  const int MAX_NUMBER_OF_BEST = 10;
-  const int DELTA_NUMBER_OF_BEST = 5;
+  const int MIN_F = 5;
+  const int MAX_F = 15;
+  const int DELTA_F = 5;
 
   const double OPTIMAL_GAMMA = 0.005;
-  const double DELTA_GAMMA = 0.9;
-  std::vector<Train> trains;
-
-  //std::default_random_engine generator;
-  //std::normal_distribution<double> distribution;
+  const double DELTA_GAMMA = 0.95;
+  std::vector<Film> trains;
 
   bool getLine(char *s) {
     char c;
@@ -88,7 +84,7 @@ struct SVD {
         maxUserId = std::max(maxUserId, userId);
         minItemId = std::min(minItemId, itemId);
         maxItemId = std::max(maxItemId, itemId);
-        trains.emplace_back(userId, itemId, rating);
+        trains.emplace_back(userId, itemId, rating * 1.0);
       }
       fclose(stdin);
       fprintf(stderr, "userId: [%d, %d]\n", minUserId, maxUserId);
@@ -96,41 +92,17 @@ struct SVD {
       fprintf(stderr, "Average rating: %.5f\n", (double)sumRate / static_cast<int>(trains.size()));
   }
 
-  double nextGaussian(bool &haveNextNextGaussian, double &nextNextGaussian) {
-    if (haveNextNextGaussian) {
-      haveNextNextGaussian = false;
-      return nextNextGaussian;
-    } else {
-      double v1, v2, s;
-      do {
-        v1 = 2 * (rand() * 1.0 / RAND_MAX) - 1;
-        v2 = 2 * (rand() * 1.0 / RAND_MAX) - 1;
-        s = v1 * v1 + v2 * v2;
-      } while (s >= 1 || s == 0);
-      double multiplier = sqrt(-2 * log(s) / s);
-      nextNextGaussian = v2 * multiplier;
-      haveNextNextGaussian = true;
-      return v1 * multiplier;
-    }
-  }  
-
   std::vector<double> generateRandomValues(int n) {
     srand(time(nullptr));
     std::vector<double> as(n);
-    bool haveNextNextGaussian = false;
-    double nextNextGaussian;
     for (int i = 0; i < n; i++) {
       as[i] = (1.0 / n) * (rand() * 1.0 / RAND_MAX);
-      //as[i] = (1.0 / n) * nextGaussian(haveNextNextGaussian, nextNextGaussian);
     }
     return std::move(as);
   }
 
-  inline double scal(std::vector<double> &pu, std::vector<double> &qi, int n) {
-    //if (pu.size() == 0) pu = generateRandomValues(n);
-    //if (qi.size() == 0) qi = generateRandomValues(n);
+  inline double scal(const std::vector<double> &pu, const std::vector<double> &qi) {
     double answer = 0;	    
-    //assert(pu.size() == qi.size());
     for (size_t i = 0; i < qi.size(); i++) {
       answer += pu[i] * qi[i];
     }
@@ -149,7 +121,7 @@ struct SVD {
     double result = parameters.mu + 
                     parameters.bu[film.userId] + 
                     parameters.bi[film.itemId] +
-                    scal(parameters.pu[film.userId], parameters.qi[film.itemId], parameters.best_films_count);
+                    scal(parameters.pu[film.userId], parameters.qi[film.itemId]);
     int rating = static_cast<int>(result);
     rating = std::min(5, std::max(1, rating));
     return rating;
@@ -160,7 +132,7 @@ struct SVD {
     return x * x;
   }
 
-  /*double calculateParametersError(SVDParameters &parameters) {
+  double calculateParametersError(SVDParameters &parameters) {
     double error = 0.0;
     for (auto userId : parameters.ratings) {
       for (auto itemId : parameters.ratings[userId.first]) {
@@ -173,29 +145,28 @@ struct SVD {
       }
     }
     return error;
-  }*/
+  }
 
   SVDParameters solve(const SVDParameters &parameters) {
-    fprintf(stderr, "Using parameters: lambda=%.6f, best_films_count=%d, gamma=%.6f, mu = %.6f\n", parameters.lambda, parameters.best_films_count,
+    fprintf(stderr, "Using parameters: lambda=%.6f, best_films_count=%d, gamma=%.6f, mu = %.6f\n", parameters.lambda, parameters.f,
                                                                                     parameters.gamma, parameters.mu);
-    //double error = 0.0;
-    //double lastError = 1.0;
+    double error = 0.0;
+    double lastError = 1.0;
 
-    SVDParameters answer = SVDParameters(parameters.lambda, parameters.best_films_count, parameters.gamma, parameters.mu);
-    //for (int i = 0; i < MAX_ITERATIONS && std::abs(error - lastError) > EPS; i++) {
-    for (int i = 0; i < MAX_ITERATIONS; i++) {
+    SVDParameters answer = SVDParameters(parameters.lambda, parameters.f, parameters.gamma, parameters.mu);
+    for (int i = 0; i < MAX_ITERATIONS && std::abs(error - lastError) > EPS; i++) {
       int counter = 0;
-      for (const Train &train : trains) {
+      for (const Film &train : trains) {
         int userId = train.userId;
         int itemId = train.itemId;
         int rating = train.rating;
 
         if (i == 0) {
-          answer.pu[userId] = generateRandomValues(answer.best_films_count);
-          answer.qi[itemId] = generateRandomValues(answer.best_films_count);
+          answer.pu[userId] = generateRandomValues(answer.f);
+          answer.qi[itemId] = generateRandomValues(answer.f);
           answer.bu[userId] = 0;
           answer.bi[itemId] = 0;
-          //answer.ratings[userId][itemId] = rating;
+          answer.ratings[userId][itemId] = rating;
         }
 
         double nbu = answer.bu[userId];
@@ -203,13 +174,13 @@ struct SVD {
         std::vector<double> &npu = answer.pu[userId];
         std::vector<double> &nqi = answer.qi[itemId];
         
-        double predictedRating = answer.mu + nbu + nbi + scal(npu, nqi, answer.best_films_count);
+        double predictedRating = answer.mu + nbu + nbi + scal(npu, nqi);
         double errorPredicted = rating - predictedRating;
         
         answer.bu[userId] = nbu + answer.gamma * (errorPredicted - answer.lambda * nbu);
         answer.bi[itemId] = nbi + answer.gamma * (errorPredicted - answer.lambda * nbi);
 
-        for (int j = 0; j < answer.best_films_count; j++) {
+        for (int j = 0; j < answer.f; j++) {
           double pu = npu[j];
           double qi = nqi[j];
           npu[j] = pu + answer.gamma * (errorPredicted * qi - answer.lambda * pu);
@@ -220,16 +191,13 @@ struct SVD {
         }
       }
       answer.gamma *= DELTA_GAMMA;
-      //lastError = error;
-      //fprintf(stderr, "Started re-calculating error\n");
-      //error = calculateParametersError(answer);
-      //fprintf(stderr, "Finished %d/%d iterations, error = %.10f\n", i + 1, MAX_ITERATIONS, error);
-      fprintf(stderr, "Finished %d/%d iterations\n", i + 1, MAX_ITERATIONS);
+      lastError = error;
+      fprintf(stderr, "Started re-calculating error\n");
+      error = calculateParametersError(answer);
+      fprintf(stderr, "Finished %d/%d iterations, error = %.10f\n", i + 1, MAX_ITERATIONS, error);
     }
-    //answer.error = error;
-    //fprintf(stderr, "Started calculating error\n");
-    //answer.error = calculateParametersError(answer);
-    answer.error = 0;
+    fprintf(stderr, "Started calculating error\n");
+    answer.error = calculateParametersError(answer);
     fprintf(stderr, "Finished solve()\n");
     return answer;
   }
@@ -239,34 +207,16 @@ struct SVD {
     parameters.error = 1e18;
     parameters.mu = MU;
 
-    //size_t seed = std::chrono::system_clock::now().time_since_epoch().count();
-    //generator = std::default_random_engine(seed);
-    //distribution = std::normal_distribution<double>(5.0, 2.0);
-
     for (double lambda = MIN_LAMBDA; lambda <= MAX_LAMBDA; lambda += DELTA_LAMBDA) {
-    //for (double lambda = OPTIMAL_LAMBDA; lambda <= OPTIMAL_LAMBDA; lambda += DELTA_LAMBDA) {
-    //double lambda = OPTIMAL_LAMBDA;
-    //{
-      //for (int best_films_count = MIN_NUMBER_OF_BEST; best_films_count <= MAX_NUMBER_OF_BEST; best_films_count += DELTA_NUMBER_OF_BEST) {
-      int best_films_count = MIN_NUMBER_OF_BEST;
-      {
-        SVDParameters tmpParameters = SVDParameters(lambda, best_films_count, OPTIMAL_GAMMA, MU);
-        //SVDParameters answer = solve(tmpParameters);
-        parameters = solve(tmpParameters);
-	fprintf(stderr, "Returned back to learn()\n");
-	fflush(stderr);
-        //if (parameters.error > answer.error) {
-	  //parameters = answer;
-        //}
-	fprintf(stderr, "Updated error, lambda = %.5f, best = %d\n", lambda, best_films_count);
-	fflush(stderr);
+      for (int f = MIN_F; f <= MAX_F; f += DELTA_F) {
+        SVDParameters tmpParameters = SVDParameters(lambda, f, OPTIMAL_GAMMA, MU);
+        SVDParameters answer = solve(tmpParameters);
+	      if (parameters.error > answer.error) {
+	        parameters = SVDParameters(lambda, f, OPTIMAL_GAMMA, MU);
+        }
       }
-      fprintf(stderr, "Exit best loop\n");
-      fflush(stderr);
     }
-    fprintf(stderr, "Before return\n");
-    fflush(stderr);
-    return parameters;
+    return solve(parameters);
   }
 };
 
