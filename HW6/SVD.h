@@ -20,20 +20,20 @@ struct SVD {
   const int MAX_LENGTH = 50;
 
   const double MU = 3.6033; //average rating
-  const int MAX_ITERATIONS = 50;
+  const int MAX_ITERATIONS = 20;
   const int EPS = 1e-6;
 
-  const double MIN_LAMBDA = 0.003;
-  const double MAX_LAMBDA = 0.003;
+  const double MIN_LAMBDA = 0.005;
+  const double MAX_LAMBDA = 0.005;
   const double DELTA_LAMBDA = 0.001;
   const double OPTIMAL_LAMBDA = 0.003;
 
-  const int MIN_NUMBER_OF_BEST = 15;
-  const int MAX_NUMBER_OF_BEST = 15;
+  const int MIN_NUMBER_OF_BEST = 10;
+  const int MAX_NUMBER_OF_BEST = 10;
   const int DELTA_NUMBER_OF_BEST = 5;
 
   const double OPTIMAL_GAMMA = 0.005;
-  const double DELTA_GAMMA = 1.0;
+  const double DELTA_GAMMA = 0.95;
   std::vector<Train> trains;
 
   //std::default_random_engine generator;
@@ -134,11 +134,11 @@ struct SVD {
   }
 
   inline double scal(std::vector<double> &pu, std::vector<double> &qi, int n) {
-    if (pu.size() == 0) pu = generateRandomValues(n);
-    if (qi.size() == 0) qi = generateRandomValues(n);
+    //if (pu.size() == 0) pu = generateRandomValues(n);
+    //if (qi.size() == 0) qi = generateRandomValues(n);
     double answer = 0;	    
-    assert(pu.size() == qi.size());
-    for (size_t i = 0; i < pu.size(); i++) {
+    //assert(pu.size() == qi.size());
+    for (size_t i = 0; i < qi.size(); i++) {
       answer += pu[i] * qi[i];
     }
     return answer;
@@ -200,14 +200,16 @@ struct SVD {
         if (i == 0) {
           answer.pu[userId] = generateRandomValues(answer.best_films_count);
           answer.qi[itemId] = generateRandomValues(answer.best_films_count);
+          answer.bu[userId] = 0;
+          answer.bi[itemId] = 0;
           //answer.ratings[userId][itemId] = rating;
         }
 
         double nbu = answer.bu[userId];
         double nbi = answer.bi[itemId];
-        std::vector<double> &nqi = answer.qi[itemId];
         std::vector<double> &npu = answer.pu[userId];
-
+        std::vector<double> &nqi = answer.qi[itemId];
+        
         double predictedRating = answer.mu + nbu + nbi + scal(npu, nqi, answer.best_films_count);
         double errorPredicted = rating - predictedRating;
         
@@ -215,10 +217,10 @@ struct SVD {
         answer.bi[itemId] = nbi + answer.gamma * (errorPredicted - answer.lambda * nbi);
 
         for (int j = 0; j < answer.best_films_count; j++) {
-          double qi = nqi[j];
           double pu = npu[j];
-          nqi[j] = qi + answer.gamma * (errorPredicted * pu - answer.lambda * qi);
+          double qi = nqi[j];
           npu[j] = pu + answer.gamma * (errorPredicted * qi - answer.lambda * pu);
+          nqi[j] = qi + answer.gamma * (errorPredicted * pu - answer.lambda * qi);
         }
         if (++counter % 10000000 == 0) {
             fprintf(stderr, "Finished analyzing train #%d\n", counter);
