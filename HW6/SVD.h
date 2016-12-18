@@ -23,8 +23,8 @@ struct SVD {
   const int MAX_ITERATIONS = 20;
   const int EPS = 1e-6;
 
-  const double MIN_LAMBDA = 0.005;
-  const double MAX_LAMBDA = 0.005;
+  const double MIN_LAMBDA = 0.002;
+  const double MAX_LAMBDA = 0.002;
   const double DELTA_LAMBDA = 0.001;
   const double OPTIMAL_LAMBDA = 0.003;
 
@@ -97,10 +97,10 @@ struct SVD {
   }
 
   double nextGaussian(bool &haveNextNextGaussian, double &nextNextGaussian) {
-    //if (haveNextNextGaussian) {
-    //  haveNextNextGaussian = false;
-    //  return nextNextGaussian;
-    /*} else*/ {
+    if (haveNextNextGaussian) {
+      haveNextNextGaussian = false;
+      return nextNextGaussian;
+    } else {
       double v1, v2, s;
       do {
         v1 = 2 * (rand() * 1.0 / RAND_MAX) - 1;
@@ -120,15 +120,8 @@ struct SVD {
     bool haveNextNextGaussian = false;
     double nextNextGaussian;
     for (int i = 0; i < n; i++) {
-      /*while (true) {
-        double number = distribution(generator);
-        if (0 <= number && number <= 1.0 / n) {
-          as[i] = number;
-          break;
-        }
-      }*/
-      as[i] = (1.0 / n) * (rand() * 1.0 / RAND_MAX);
-      //as[i] = (1.0 / n) * nextGaussian(haveNextNextGaussian, nextNextGaussian);
+      //as[i] = (1.0 / n) * (rand() * 1.0 / RAND_MAX);
+      as[i] = (1.0 / n) * nextGaussian(haveNextNextGaussian, nextNextGaussian);
     }
     return std::move(as);
   }
