@@ -33,7 +33,7 @@ struct SVD {
   const int DELTA_NUMBER_OF_BEST = 5;
 
   const double OPTIMAL_GAMMA = 0.005;
-  const double DELTA_GAMMA = 0.95;
+  const double DELTA_GAMMA = 0.9;
   std::vector<Train> trains;
 
   //std::default_random_engine generator;
@@ -120,8 +120,8 @@ struct SVD {
     bool haveNextNextGaussian = false;
     double nextNextGaussian;
     for (int i = 0; i < n; i++) {
-      //as[i] = (1.0 / n) * (rand() * 1.0 / RAND_MAX);
-      as[i] = (1.0 / n) * nextGaussian(haveNextNextGaussian, nextNextGaussian);
+      as[i] = (1.0 / n) * (rand() * 1.0 / RAND_MAX);
+      //as[i] = (1.0 / n) * nextGaussian(haveNextNextGaussian, nextNextGaussian);
     }
     return std::move(as);
   }
