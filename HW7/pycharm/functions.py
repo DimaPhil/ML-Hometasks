@@ -10,11 +10,11 @@ def sigmoid_der(x):
     return np.diag(s * (1 - s))
 
 
-def softmax(x):
+def soft_max(x):
     return np.exp(x) / np.exp(x).sum()
 
 
-def softmax_der(x):
-    p = softmax(x)
+def soft_max_der(x):
+    p = soft_max(x)
     t = np.outer(p, p)
     return np.diag(p) - t
